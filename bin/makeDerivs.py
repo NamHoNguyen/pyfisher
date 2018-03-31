@@ -48,14 +48,15 @@ def getPowerCamb(params,spec='lensed_scalar',AccuracyBoost=False):
     
     pars = camb.CAMBparams()
     if AccuracyBoost:
-        #pars.set_accuracy(AccuracyBoost=2.0, lSampleBoost=2.0, lAccuracyBoost=2.0)
-        pars.set_accuracy(AccuracyBoost=3.0, lSampleBoost=3.0, lAccuracyBoost=3.0)
+        #pars.set_accuracy(AccuracyBoost=1.0, lSampleBoost=1.0, lAccuracyBoost=1.0)
+        pars.set_accuracy(AccuracyBoost=2.0, lSampleBoost=2.0, lAccuracyBoost=2.0)
+        #pars.set_accuracy(AccuracyBoost=3.0, lSampleBoost=3.0, lAccuracyBoost=3.0)
     pars.set_cosmology(H0=params['H0'], ombh2=params['ombh2'], omch2=params['omch2'], tau=params['tau'],mnu=params['mnu'],nnu=params['nnu'],omk=params['omk'],num_massive_neutrinos=int(params['num_massive_neutrinos']),TCMB=params['TCMB'])
     pars.set_dark_energy(w=params['w'])
     pars.InitPower.set_params(As=params['As'],ns=params['ns'],r=params['r'],pivot_scalar=params['s_pivot'], pivot_tensor=params['t_pivot'])
-    pars.set_for_lmax(lmax=int(params['lmax']), lens_potential_accuracy=1, max_eta_k=2*params['lmax'])
-    #pars.set_for_lmax(lmax=int(params['lmax']), lens_potential_accuracy=2.0, max_eta_k=50000.0)
-    pars.set_for_lmax(lmax=int(params['lmax']), lens_potential_accuracy=3.0, max_eta_k=50*params['lmax'])
+    #pars.set_for_lmax(lmax=int(params['lmax']), lens_potential_accuracy=1, max_eta_k=2*params['lmax'])
+    pars.set_for_lmax(lmax=int(params['lmax']), lens_potential_accuracy=2.0, max_eta_k=50000.0)
+    #pars.set_for_lmax(lmax=int(params['lmax']), lens_potential_accuracy=3.0, max_eta_k=50*params['lmax'])
 
     #WantTensors
     if params['r']:
@@ -72,8 +73,9 @@ def getPowerCamb(params,spec='lensed_scalar',AccuracyBoost=False):
     clphi = lensArr[:,0]
     cltphi = lensArr[:,1]
 
-    j=0.
+    j=0
     CLS = []
+    print clphi
     # numpify this!
     for row in CL:
         if j>params['lmax']: break
@@ -84,7 +86,7 @@ def getPowerCamb(params,spec='lensed_scalar',AccuracyBoost=False):
         rawkt = cltphi[j]* (2.*np.pi/2.) / np.sqrt(j*(j+1.)) * params['TCMB']*1.e6
         CLS.append(np.append(raw,(rawkk,rawkt)))
                    
-        j+=1.
+        j+=1
 
     CLS = np.nan_to_num(np.array(CLS))
 
@@ -93,10 +95,13 @@ def getPowerCamb(params,spec='lensed_scalar',AccuracyBoost=False):
 
 def main(argv):
 
-
-    # Read Config
-    iniFile = os.environ['FISHER_DIR']+"/input/makeDerivs_pyCAMB.ini"
-    #iniFile = os.environ['FISHER_DIR']+'/input/June2_makeDerivs_optimal.ini'
+    try:
+        iniFile = argv[0]
+    except:        
+        # Read Config
+        iniFile = os.environ['FISHER_DIR']+"/input/makeDerivs_pyCAMB.ini"
+        #iniFile = os.environ['FISHER_DIR']+'/input/June2_makeDerivs_optimal.ini'
+    print iniFile
     Config = ConfigParser.SafeConfigParser()
     Config.optionxform = str
     Config.read(iniFile)
@@ -136,7 +141,7 @@ def main(argv):
     #fidCls = getPowerCamb(fparams,spec+"_scalar",AccuracyBoost=AccuracyBoost)
     np.savetxt(os.environ['FISHER_DIR']+"/output/"+out_pre+'_'+spec+"_fCls.csv",fidCls,delimiter=",")
 
-    sys.exit()
+    #sys.exit()
     # Calculate and save derivatives
     for paramName in paramList:
         print "Calculating derivatives for ", paramName
@@ -159,8 +164,12 @@ def main(argv):
                 mparams['H0'] = getHubbleCosmology(theta=mparams['theta100'],params=mparams)
             mCls = getPowerCamb(mparams,spec,AccuracyBoost=AccuracyBoost)
             #mCls = getPowerCamb(mparams,spec+"_scalar",AccuracyBoost=AccuracyBoost)
-            
-            dCls = (pCls-mCls)/h
+
+            if len(pCls) == len(mCls):
+                dCls = (pCls-mCls)/h
+            else:
+                lmax = min(len(pCls),len(mCls))
+                dCls = (pCls[:lmax,:]-mCls[:lmax,:])/h
             
         elif derivForm == 1:
             print 'Using 5-point stencil'

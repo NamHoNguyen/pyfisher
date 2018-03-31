@@ -171,15 +171,21 @@ def tryLoad(filepath,delimiter=None):
             return np.loadtxt('output/'+filepath,delimiter=delimiter)
         except:
             return np.loadtxt(os.environ['FISHER_DIR']+'/output/'+filepath,delimiter=delimiter)
-def loadFishers(filepaths):
+def loadFishers(filepaths,fskyScale=None):
     totFisher = 0.
+    scaling = None
     for filepath in filepaths:
         F = np.loadtxt(filepath)
+        if fskyScale is not None:
+            if filepath in fskyScale:
+                F = F*fskyScale[filepath]
+                scaling = 0.
+                print "Scaling "+filepath+" by a factor of "+str(fskyScale[filepath])
         try:
             totFisher += F
         except:
-            print "Saved Fisher Matrices  don't have the same dimensions"
-
+            print "Saved Fisher Matrices don't have the same dimensions"
+    if scaling is None: print "Caution: fsky of saved Fisher Matrices were not scaled"
     return totFisher
 
 def noiseFromConfig(Config,expName,TCMB=2.7255e6,beamsOverride=None,noisesOverride=None,lkneeTOverride=None,lkneePOverride=None,alphaTOverride=None,alphaPOverride=None,tellminOverride=None,pellminOverride=None,tellmaxOverride=None,pellmaxOverride=None):
