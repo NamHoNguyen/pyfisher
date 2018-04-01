@@ -81,7 +81,8 @@ for fskyNow in fskyList:
         # fnTT is dimensional from file
         
         # Pad CMB lensing noise with infinity outside L ranges
-        ls,Nls = np.loadtxt('output/Feb23_mv_nlkk_deproj0_'+noiseNow+'_fsky_'+fskyNow+'.csv',unpack=True)
+        #ls,Nls = np.loadtxt('output/Feb23_mv_nlkk_deproj0_'+noiseNow+'_fsky_'+fskyNow+'.csv',unpack=True)
+        ls,Nls = np.loadtxt('output/Mar31_mv_nlkk_deproj0_'+noiseNow+'_fsky_'+fskyNow+'.csv',unpack=True)
         #ls,Nls = np.loadtxt('output/Mar8_polOnly_nlkk_deproj0_'+noiseNow+'_fsky_'+fskyNow+'.csv',unpack=True)
         #ls,Nls,ellbb,origclbb,dclbb,efficiency,cc = lensNoise(Config,expName,lensName,beamOverride=None,lkneeTOverride=None,lkneePOverride=None,alphaTOverride=None,alphaPOverride=None,noiseFuncT=lambda x: fnTT(x)/TCMB**2.,noiseFuncP=lambda x: fnEE(x)/TCMB**2.)
         kellmin,kellmax = list_from_config(Config,lensName,'Lrange')

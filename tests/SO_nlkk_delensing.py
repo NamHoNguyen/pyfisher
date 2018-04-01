@@ -61,7 +61,7 @@ for timeNow in timeList:
         kellmin,kellmax = list_from_config(Config,lensName,'Lrange')
         fnKK = cosmo.noise_pad_infinity(interp1d(ls,Nls,fill_value=np.inf,bounds_error=False),kellmin,kellmax)
         Lrange = np.arange(kellmin,kellmax)
-        np.savetxt(outDir+'nlkk_deproj0_'+noiseNow+'_fksy_'+fskyNow+'_time_'+timeNow+'.csv',np.vstack([Lrange,fnKK(Lrange)]).T)
+        #np.savetxt(outDir+'nlkk_deproj0_'+noiseNow+'_fksy_'+fskyNow+'_time_'+timeNow+'.csv',np.vstack([Lrange,fnKK(Lrange)]).T)
 
         efficiencies[i,j]=efficiency
         cprint("Delensing efficiency: "+ str(efficiency) + " %",color="green",bold=True)
