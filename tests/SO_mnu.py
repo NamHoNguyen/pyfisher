@@ -71,8 +71,9 @@ for fskyNow in fskyList:
         # Get CMB noise and pad it with inf
         tellmin,tellmax = list_from_config(Config,expName,'tellrange')
         pellmin,pellmax = list_from_config(Config,expName,'pellrange')
-        ellT,nlTT,dummy = np.loadtxt('tests/TT/SOV3_T_default1-4-2_noisecurves_deproj0_'+noiseNow+'_mask_'+fskyNow+'_ell_TT_yy.txt',unpack=True)
-        ellE,dummy,nlEE = np.loadtxt('tests/EE/Nell_comb_LAT_'+noiseNow+'_fsky'+fskyNow+'.txt',unpack=True)
+        ellT,nlTT,dummy = np.loadtxt('tests/TT/SOV3_T_default1-4-2_noisecurves_deproj1_'+noiseNow+'_mask_'+fskyNow+'_ell_TT_yy.txt',unpack=True)
+        #ellE,dummy,nlEE = np.loadtxt('tests/EE/Nell_comb_LAT_'+noiseNow+'_fsky'+fskyNow+'.txt',unpack=True)
+        ellE,nlEE,nlBB = np.loadtxt('tests/EE-BB/SOV3_pol_default1-4-2_noisecurves_deproj1_'+noiseNow+'_mask_'+fskyNow+'_ell_EE_BB.txt',unpack=True)
         #fnTT = interp1d(ellT,nlTT,bounds_error=False,fill_value=np.inf)
         #fnEE = interp1d(ellE,nlEE,bounds_error=False,fill_value=np.inf)
         fnTT = cosmo.noise_pad_infinity(interp1d(ellT,nlTT,bounds_error=False,fill_value=np.inf),tellmin,tellmax)
@@ -82,8 +83,8 @@ for fskyNow in fskyList:
         
         # Pad CMB lensing noise with infinity outside L ranges
         #ls,Nls = np.loadtxt('output/Feb23_mv_nlkk_deproj0_'+noiseNow+'_fsky_'+fskyNow+'.csv',unpack=True)
-        ls,Nls = np.loadtxt('output/Mar31_mv_nlkk_deproj0_'+noiseNow+'_fsky_'+fskyNow+'.csv',unpack=True)
-        #ls,Nls = np.loadtxt('output/Mar8_polOnly_nlkk_deproj0_'+noiseNow+'_fsky_'+fskyNow+'.csv',unpack=True)
+        #ls,Nls = np.loadtxt('output/Apr1_mv_nlkk_deproj0_'+noiseNow+'_fsky_'+fskyNow+'.csv',unpack=True)
+        ls,Nls = np.loadtxt('output/Apr1_polOnly_nlkk_deproj1_'+noiseNow+'_fsky_'+fskyNow+'.csv',unpack=True)
         #ls,Nls,ellbb,origclbb,dclbb,efficiency,cc = lensNoise(Config,expName,lensName,beamOverride=None,lkneeTOverride=None,lkneePOverride=None,alphaTOverride=None,alphaPOverride=None,noiseFuncT=lambda x: fnTT(x)/TCMB**2.,noiseFuncP=lambda x: fnEE(x)/TCMB**2.)
         kellmin,kellmax = list_from_config(Config,lensName,'Lrange')
         fnKK = cosmo.noise_pad_infinity(interp1d(ls,Nls,fill_value=np.inf,bounds_error=False),kellmin,kellmax)
@@ -131,5 +132,5 @@ for fskyNow in fskyList:
     i+=1
 outDir = 'output/'+saveName+"_"
 
-#np.savetxt(outDir+'mnu.csv',mnus)
+np.savetxt(outDir+'mnu.csv',mnus)
 np.savetxt(outDir+'sn.csv',sns)

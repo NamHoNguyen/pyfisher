@@ -42,6 +42,11 @@ fsky = float(fskyNow)/40000.
 print "Run with testNlkk lensing"
 outDir = 'output/'+saveName+"_"
 #for noiseNow,fskyNow in zip(noiseList,fskyList):
+
+cambRoot = '../quicklens/quicklens/data/cl/planck_wp_highL/planck_lensing_wp_highL_bestFit_20130627'
+theoryOverride = cosmo.loadTheorySpectraFromCAMB(cambRoot,unlensedEqualsLensed=False,useTotal=False,TCMB = 2.7255e6,lpad=9000,get_dimensionless=True)
+#theoryOverride = None
+
 i = 0
 for timeNow in timeList:
     time = float(timeNow)
@@ -51,13 +56,14 @@ for timeNow in timeList:
         tellmin,tellmax = list_from_config(Config,expName,'tellrange')
         pellmin,pellmax = list_from_config(Config,expName,'pellrange')
         ellT,nlTT,dummy = np.loadtxt('tests/TT/SOV3_T_default1-4-2_noisecurves_deproj0_'+noiseNow+'_mask_'+fskyNow+'_ell_TT_yy.txt',unpack=True)
-        ellE,dummy,nlEE = np.loadtxt('tests/EE/Nell_comb_LAT_'+noiseNow+'_fsky'+fskyNow+'.txt',unpack=True)
+        #ellE,dummy,nlEE = np.loadtxt('tests/EE/Nell_comb_LAT_'+noiseNow+'_fsky'+fskyNow+'.txt',unpack=True)
+        ellE,nlEE,nlBB = np.loadtxt('tests/EE-BB/SOV3_pol_default1-4-2_noisecurves_deproj0_'+noiseNow+'_mask_'+fskyNow+'_ell_EE_BB.txt',unpack=True)
         fnTT = cosmo.noise_pad_infinity(interp1d(ellT,nlTT,bounds_error=False,fill_value=np.inf),tellmin,tellmax)
         fnEE = cosmo.noise_pad_infinity(interp1d(ellE,nlEE,bounds_error=False,fill_value=np.inf),pellmin,pellmax)
 
         # fnTT is dimensional from file        
         # Pad CMB lensing noise with infinity outside L ranges
-        ls,Nls,ellbb,dclbb,efficiency,cc = lensNoise(Config,expName,lensName,beamOverride=None,lkneeTOverride=None,lkneePOverride=None,alphaTOverride=None,alphaPOverride=None,noiseFuncT=lambda x: fnTT(x)/TCMB**2./time,noiseFuncP=lambda x: fnEE(x)/TCMB**2./time)
+        ls,Nls,ellbb,dclbb,efficiency,cc = lensNoise(Config,expName,lensName,beamOverride=None,lkneeTOverride=None,lkneePOverride=None,alphaTOverride=None,alphaPOverride=None,noiseFuncT=lambda x: fnTT(x)/TCMB**2./time,noiseFuncP=lambda x: fnEE(x)/TCMB**2./time,theoryOverride=theoryOverride)
         kellmin,kellmax = list_from_config(Config,lensName,'Lrange')
         fnKK = cosmo.noise_pad_infinity(interp1d(ls,Nls,fill_value=np.inf,bounds_error=False),kellmin,kellmax)
         Lrange = np.arange(kellmin,kellmax)

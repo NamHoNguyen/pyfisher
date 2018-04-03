@@ -8,8 +8,9 @@ taus = [0.01,0.005,0.002]
 fskys = [0.1,0.2,0.4]
 noises = ['Threshold','Baseline','Goal']
 
-'''
-prefix = 'output/Feb23_deproj0'
+
+#prefix = 'output/Feb23_deproj0'
+prefix = 'output/Apr1_deproj0'
 #prefix = 'output/Mar8_deproj0_polOnly'
 
 for tau in taus:
@@ -28,8 +29,10 @@ plt.clf()
 '''
 # Lensing S/N plot
 ls=itertools.cycle(['-','--'])
-sns1 = np.loadtxt('output/Feb23_deproj0_tau_0.01_sn.csv')
-sns2 = np.loadtxt('output/Mar8_deproj0_polOnly_tau_0.01_sn.csv')
+#sns1 = np.loadtxt('output/Feb23_deproj0_tau_0.01_sn.csv')
+#sns2 = np.loadtxt('output/Mar8_deproj0_polOnly_tau_0.01_sn.csv')
+sns1 = np.loadtxt('output/Apr1_deproj1_tau_0.01_sn.csv')
+sns2 = np.loadtxt('output/Apr1_polOnly_deproj1_tau_0.01_sn.csv')
 for i in range(len(noises)):
     c = color.next()
     l = ls.next()
@@ -41,4 +44,6 @@ plt.xlabel('fsky')
 plt.ylabel('Lensing S/N')
 #plt.ylim([15,45])
 plt.legend()
-plt.savefig('output/Mar9_deproj0_sn.png')    
+plt.savefig('output/Apr1_deproj1_sn.png')    
+#plt.savefig('output/Mar9_deproj0_sn.png')    
+'''
