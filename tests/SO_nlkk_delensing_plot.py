@@ -40,12 +40,16 @@ plt.savefig('tests/Apr1_delensingEff_time.png')
 i = 0
 for noiseNow in noiseList:
     c = color.next()
-    plt.plot(timeList,100.-mv[:,i],c+'-o',label=noiseNow+' mv')
-    plt.plot(timeList,100.-polOnly[:,i],c+'--o',label=noiseNow +' mv (pol only)')
+    if noiseNow == noiseList[0]:
+        plt.plot(timeList,100.-mv[:,i],c+'-o',label=noiseNow+' - mv')
+        plt.plot(timeList,100.-polOnly[:,i],c+'--o',label=noiseNow +' - pol only')
+    else:
+        plt.plot(timeList,100.-mv[:,i],c+'-o',label=noiseNow)
+        plt.plot(timeList,100.-polOnly[:,i],c+'--o')
     i+=1
 plt.xlabel('Percentage of time',fontsize=20)
 plt.ylabel('$A_{\\rm lens}$',fontsize=25)
-plt.title('$f_{sky}$=0.1',fontsize=25)
+plt.title('$f_{sky}=0.1$',fontsize=25)
 plt.xlim([15,110])
 plt.legend()
 #plt.show()
