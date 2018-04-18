@@ -35,21 +35,21 @@ Config = SafeConfigParser()
 Config.optionxform=str
 Config.read(iniFile)
 
-fskyList = ['04000','08000','16000']
-noiseList = ['SENS0','SENS1','SENS2']
-#fskyList = ['16000']
-#noiseList = ['SENS1']
-kkonly = False
+tauList = ['0.01','0.005','0.002']
+deprojList = ['0','1','2','3']
 
-mnus = np.zeros([len(fskyList),len(noiseList)])
-sns = np.zeros([len(fskyList),len(noiseList)])
+fskyNow = '16000'
+fsky = float(fskyNow)/40000.
+
+mnus = np.zeros([len(tauList),len(deprojList)])
+sns = np.zeros([len(tauList),len(deprojList)])
 
 #for noiseNow,fskyNow in zip(noiseList,fskyList):
 i = 0
-for fskyNow in fskyList:
-    fsky = float(fskyNow)/40000.
+for tauNow in tauList:
+    tau = float(tauNow)
     j = 0
-    for noiseNow in noiseList:
+    for deprojNow in deprojList:
         # File root name for Fisher derivatives
         derivRoot = Config.get("fisher","derivRoot")
         
@@ -74,20 +74,15 @@ for fskyNow in fskyList:
         # Get CMB noise and pad it with inf
         tellmin,tellmax = list_from_config(Config,expName,'tellrange')
         pellmin,pellmax = list_from_config(Config,expName,'pellrange')
-        ellT,nlTT,dummy = np.loadtxt('tests/TT/SOV3_T_default1-4-2_noisecurves_deproj0_'+noiseNow+'_mask_'+fskyNow+'_ell_TT_yy.txt',unpack=True)
-        #ellE,dummy,nlEE = np.loadtxt('tests/EE/Nell_comb_LAT_'+noiseNow+'_fsky'+fskyNow+'.txt',unpack=True)
-        ellE,nlEE,nlBB = np.loadtxt('tests/EE-BB/SOV3_pol_default1-4-2_noisecurves_deproj0_'+noiseNow+'_mask_'+fskyNow+'_ell_EE_BB.txt',unpack=True)
-        #fnTT = interp1d(ellT,nlTT,bounds_error=False,fill_value=np.inf)
-        #fnEE = interp1d(ellE,nlEE,bounds_error=False,fill_value=np.inf)
+        ellT,nlTT,dummy = np.loadtxt('tests/AdvACT/AdvACT_T_default_Nseasons4.0_NLFyrs2.0_noisecurves_deproj'+deprojNow+'_mask_'+fskyNow+'_ell_TT_yy.txt',unpack=True)
+        ellE,nlEE,nlBB = np.loadtxt('tests/AdvACT/AdvACT_pol_default_Nseasons4.0_NLFyrs2.0_noisecurves_deproj'+deprojNow+'_mask_'+fskyNow+'_ell_EE_BB.txt',unpack=True)
         fnTT = cosmo.noise_pad_infinity(interp1d(ellT,nlTT,bounds_error=False,fill_value=np.inf),tellmin,tellmax)
         fnEE = cosmo.noise_pad_infinity(interp1d(ellE,nlEE,bounds_error=False,fill_value=np.inf),pellmin,pellmax)
         
         # fnTT is dimensional from file
         
         # Pad CMB lensing noise with infinity outside L ranges
-        #ls,Nls = np.loadtxt('tests/Apr1_mv_L_kk/Apr1_mv_nlkk_deproj0_'+noiseNow+'_fsky_'+fskyNow+'.csv',unpack=True)
-        #ls,Nls = np.loadtxt('tests/Apr17_mv_L_kk_iterOn/Apr17_mv_nlkk_deproj1_'+noiseNow+'_fsky_'+fskyNow+'_iterOn.csv',unpack=True)
-        ls,Nls = np.loadtxt('output/Apr17_polOnly_nlkk_deproj0_'+noiseNow+'_fsky_'+fskyNow+'_iterOn.csv',unpack=True)
+        ls,Nls = np.loadtxt('output/Apr17_mv_AdvACT_nlkk_deproj'+deprojNow+'_fsky_'+fskyNow+'_iterOn.csv',unpack=True)
         #ls,Nls,ellbb,origclbb,dclbb,efficiency,cc = lensNoise(Config,expName,lensName,beamOverride=None,lkneeTOverride=None,lkneePOverride=None,alphaTOverride=None,alphaPOverride=None,noiseFuncT=lambda x: fnTT(x)/TCMB**2.,noiseFuncP=lambda x: fnEE(x)/TCMB**2.)
         kellmin,kellmax = list_from_config(Config,lensName,'Lrange')
         fnKK = cosmo.noise_pad_infinity(interp1d(ls,Nls,fill_value=np.inf,bounds_error=False),kellmin,kellmax)
@@ -96,19 +91,15 @@ for fskyNow in fskyList:
         ellrange = np.arange(min(tellmin,pellmin,kellmin),max(tellmax,pellmax,kellmax)).astype(int)
         # Calculate the Fisher matrix and add to other Fishers
         #Fisher = otherFisher+calcFisher(paramList,ellrange,fidCls,dCls,lambda x: fnTT(x)*TCMB**2.,lambda x: fnEE(x)*TCMB**2.,fnKK,fsky,verbose=True)
+        Fisher = otherFisher+calcFisher(paramList,ellrange,fidCls,dCls,lambda x: fnTT(x),lambda x: fnEE(x),fnKK,fsky,verbose=True)
 
-        if kkonly:
-            # Only kk
-            Fisher = otherFisher+calcFisher(paramList,ellrange,fidCls,dCls,lambda x: np.inf,lambda x: np.inf,fnKK,fsky,verbose=True)
-            print '---Fisher: kk only---'
-        else:
-            # Total - Apr1 use
-            Fisher = otherFisher+calcFisher(paramList,ellrange,fidCls,dCls,lambda x: fnTT(x),lambda x: fnEE(x),fnKK,fsky,verbose=True)
-            print '---Fisher: total---'
-        
         
         # Get prior sigmas and add to Fisher
         priorList = Config.get("fisher","priorList").split(',')
+        print priorList
+        priorList[3] = tauNow
+        print priorList
+        
         for prior,param in zip(priorList,paramList):
             try:
                 priorSigma = float(prior)
@@ -120,7 +111,7 @@ for fskyNow in fskyList:
         # get index of mnu and print marginalized constraint
         indMnu = paramList.index('mnu')
         mnu = np.sqrt(np.linalg.inv(Fisher)[indMnu,indMnu])*1000.
-        print fskyNow,noiseNow
+        print fskyNow,'deproj'+deprojNow
         cprint("Sum of neutrino masses 1-sigma: "+ str(mnu) + " meV",color="green",bold=True)
         
         mnus[i,j]=mnu

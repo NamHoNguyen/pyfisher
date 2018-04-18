@@ -34,16 +34,23 @@ Config.read(iniFile)
 fskyNow = '04000'
 timeList = ['1.0','0.5','0.25']
 noiseList = ['SENS0','SENS1','SENS2']
+nIter = np.inf
+
+if nIter == 1:
+    iterName = 'iterOff_'
+else:
+    iterName = 'iterOn_'
 
 efficiencies = np.zeros([len(timeList),len(noiseList)])
     
 fsky = float(fskyNow)/40000.
 
-print "Run with testNlkk lensing"
-outDir = 'output/'+saveName+"_"
+print "Run with testNlkk lensing, "+iterName
+outDir = 'output/'+saveName+'_'
 #for noiseNow,fskyNow in zip(noiseList,fskyList):
 
-cambRoot = '../quicklens/quicklens/data/cl/planck_wp_highL/planck_lensing_wp_highL_bestFit_20130627'
+#cambRoot = '../quicklens/quicklens/data/cl/planck_wp_highL/planck_lensing_wp_highL_bestFit_20130627'
+cambRoot = '/home/hnnguyen/CAMB-0.1.6.1/base_plikHM_TT_lowTEB_minimum_fudgedtotaup06_lmax5000'
 theoryOverride = cosmo.loadTheorySpectraFromCAMB(cambRoot,unlensedEqualsLensed=False,useTotal=False,TCMB = 2.7255e6,lpad=9000,get_dimensionless=True)
 #theoryOverride = None
 
@@ -63,16 +70,17 @@ for timeNow in timeList:
 
         # fnTT is dimensional from file        
         # Pad CMB lensing noise with infinity outside L ranges
-        ls,Nls,ellbb,dclbb,efficiency,cc = lensNoise(Config,expName,lensName,beamOverride=None,lkneeTOverride=None,lkneePOverride=None,alphaTOverride=None,alphaPOverride=None,noiseFuncT=lambda x: fnTT(x)/TCMB**2./time,noiseFuncP=lambda x: fnEE(x)/TCMB**2./time,theoryOverride=theoryOverride)
+        ls,Nls,ellbb,dclbb,efficiency,cc = lensNoise(Config,expName,lensName,beamOverride=None,lkneeTOverride=None,lkneePOverride=None,alphaTOverride=None,alphaPOverride=None,noiseFuncT=lambda x: fnTT(x)/TCMB**2./time,noiseFuncP=lambda x: fnEE(x)/TCMB**2./time,theoryOverride=theoryOverride,nIter=nIter)
         kellmin,kellmax = list_from_config(Config,lensName,'Lrange')
         fnKK = cosmo.noise_pad_infinity(interp1d(ls,Nls,fill_value=np.inf,bounds_error=False),kellmin,kellmax)
         Lrange = np.arange(kellmin,kellmax)
         #np.savetxt(outDir+'nlkk_deproj0_'+noiseNow+'_fksy_'+fskyNow+'_time_'+timeNow+'.csv',np.vstack([Lrange,fnKK(Lrange)]).T)
 
         efficiencies[i,j]=efficiency
+        print fskyNow,timeNow,noiseNow
         cprint("Delensing efficiency: "+ str(efficiency) + " %",color="green",bold=True)
         
         j+=1
     i+=1
-np.savetxt(outDir+'delensingEff.csv',efficiencies)
+np.savetxt(outDir+iterName+'delensingEff.csv',efficiencies)
     

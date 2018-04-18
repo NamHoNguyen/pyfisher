@@ -3,7 +3,7 @@ from scipy.interpolate import interp1d
 import sys
 from orphics.io import list_from_config
 
-def lensNoise(Config,expName,lensName,beamOverride=None,noiseTOverride=None,lkneeTOverride=None,lkneePOverride=None,alphaTOverride=None,alphaPOverride=None,tellminOverride=None,pellminOverride=None,tellmaxOverride=None,pellmaxOverride=None,deg=5.,px=1.0,gradCut=10000,bigell=9000,plot=False,theoryOverride=None,lensedEqualsUnlensed=True,noiseFuncT=None,noiseFuncP=None):
+def lensNoise(Config,expName,lensName,beamOverride=None,noiseTOverride=None,lkneeTOverride=None,lkneePOverride=None,alphaTOverride=None,alphaPOverride=None,tellminOverride=None,pellminOverride=None,tellmaxOverride=None,pellmaxOverride=None,deg=5.,px=1.0,gradCut=10000,bigell=9000,plot=False,theoryOverride=None,lensedEqualsUnlensed=True,noiseFuncT=None,noiseFuncP=None,nIter=np.inf):
 
     from orphics.io import list_from_config
 
@@ -46,17 +46,18 @@ def lensNoise(Config,expName,lensName,beamOverride=None,noiseTOverride=None,lkne
 
     from orphics.lensing import NlGenerator,getMax
     from orphics import maps
-    #deg = 5.
-    #px = 1.0
+
+    deg = 20
     dell = 10
-    kellmin = 10
+    kellmin = 2
+    kellmax = max(tellmax,pellmax)
+
     shape,wcs = maps.rect_geometry(width_deg = deg, px_res_arcmin=px)
-    max_iterations = 1
     eff_at = 60.
     
-    kellmax = max(tellmax,pellmax)
     kmin,kmax = list_from_config(Config,lensName,'Lrange')
-        
+
+    #print kellmin,kellmax,pellmin,pellmax,kmin,kmax
     
     if theoryOverride is None:
         from orphics.cosmology import Cosmology
@@ -70,7 +71,7 @@ def lensNoise(Config,expName,lensName,beamOverride=None,noiseTOverride=None,lkne
     myNls.updateNoise(beamX,noiseTX,np.sqrt(2.)*noiseTX,tellmin,tellmax,pellmin,pellmax,beamY=beamY,noiseTY=noiseTY,noisePY=np.sqrt(2.)*noiseTY,lkneesX=(lkneeT,lkneeP),lkneesY=(lkneeT,lkneeP),alphasX=(alphaT,alphaP),alphasY=(alphaT,alphaP),noiseFuncTX=noiseFuncT,noiseFuncTY=noiseFuncT,noiseFuncPX=noiseFuncP,noiseFuncPY=noiseFuncP)
 
     
-    lsmv,Nlmv,ells,dclbb,efficiency = myNls.getNlIterative(pols,kellmin,kellmax,tellmax,pellmin,pellmax,dell=dell,halo=True,plot=plot,max_iterations=max_iterations,eff_at=eff_at,kappa_min=kmin,kappa_max=kmax)
+    lsmv,Nlmv,ells,dclbb,efficiency = myNls.getNlIterative(pols,pellmin,pellmax,dell=dell,halo=True,plot=plot,max_iterations=nIter,eff_at=eff_at,kappa_min=kmin,kappa_max=kmax)
 
      
     return lsmv,Nlmv,ells,dclbb,efficiency,cc

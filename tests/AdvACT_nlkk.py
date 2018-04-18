@@ -32,10 +32,15 @@ Config.optionxform=str
 Config.read(iniFile)
 
 deprojList = ['0','1','2','3']
+nIter = np.inf
 
+if nIter == 1:
+    iterName = '_iterOff'
+else:
+    iterName = '_iterOn'
+    
 print "Run with testNlkk lensing or lensTT"
 outDir = 'output/'+saveName+"_"
-#for noiseNow,fskyNow in zip(noiseList,fskyList):
 i = 0
 
 cambRoot = '../quicklens/quicklens/data/cl/planck_wp_highL/planck_lensing_wp_highL_bestFit_20130627'
@@ -55,10 +60,12 @@ for deprojNow in deprojList:
     
     # fnTT is dimensional from file        
     # Pad CMB lensing noise with infinity outside L ranges
-    ls,Nls,ellbb,dclbb,efficiency,cc = lensNoise(Config,expName,lensName,beamOverride=None,lkneeTOverride=None,lkneePOverride=None,alphaTOverride=None,alphaPOverride=None,noiseFuncT=lambda x: fnTT(x)/TCMB**2.,noiseFuncP=lambda x: fnEE(x)/TCMB**2.,theoryOverride=theoryOverride)
+    ls,Nls,ellbb,dclbb,efficiency,cc = lensNoise(Config,expName,lensName,beamOverride=None,lkneeTOverride=None,lkneePOverride=None,alphaTOverride=None,alphaPOverride=None,noiseFuncT=lambda x: fnTT(x)/TCMB**2.,noiseFuncP=lambda x: fnEE(x)/TCMB**2.,theoryOverride=theoryOverride,nIter=nIter)
     kellmin,kellmax = list_from_config(Config,lensName,'Lrange')
     fnKK = cosmo.noise_pad_infinity(interp1d(ls,Nls,fill_value=np.inf,bounds_error=False),kellmin,kellmax)
     Lrange = np.arange(kellmin,kellmax)
-    np.savetxt(outDir+'AdvACT_nlkk_deproj'+deprojNow+'_fsky_16000.csv',np.vstack([Lrange,fnKK(Lrange)]).T)
+    np.savetxt(outDir+'AdvACT_nlkk_deproj'+deprojNow+'_fsky_16000'+iterName+'.csv',np.vstack([Lrange,fnKK(Lrange)]).T)
+    cprint("Delensing efficiency: "+ str(efficiency) + " %",color="green",bold=True)
+            
     i+=1
 

@@ -20,8 +20,10 @@ noiseList = ['Threshold','Baseline','Goal']
 
 #mv = np.loadtxt('output/Feb23_mv_fsky_0.1_time_sens_delensingEff.csv')
 #polOnly = np.loadtxt('output/Mar8_polOnly_fsky_0.1_time_sens_delensingEff.csv')
-mv = np.loadtxt('output/Apr1_mv_time_sens_delensingEff.csv')
-polOnly = np.loadtxt('output/Apr1_polOnly_time_sens_delensingEff.csv')
+#mv = np.loadtxt('output/Apr1_mv_time_sens_delensingEff.csv')
+#polOnly = np.loadtxt('output/Apr1_polOnly_time_sens_delensingEff.csv')
+mv = np.loadtxt('output/Apr17_mv_time_sens_iterOn_delensingEff.csv')
+polOnly = np.loadtxt('output/Apr17_polOnly_time_sens_iterOn_delensingEff.csv')
 '''
 i = 0
 for noiseNow in noiseList:
@@ -35,7 +37,7 @@ plt.title('$f_{sky}$=0.1')
 plt.xlim([15,110])
 plt.legend()
 #plt.show()
-plt.savefig('tests/Apr1_delensingEff_time.png')
+plt.savefig('tests/Apr17_delensingEff_time.png')
 '''
 i = 0
 for noiseNow in noiseList:
@@ -53,4 +55,5 @@ plt.title('$f_{sky}=0.1$',fontsize=25)
 plt.xlim([15,110])
 plt.legend()
 #plt.show()
-plt.savefig('tests/Apr1_Alens_time.png')
+plt.savefig('tests/Apr17_Alens_time.png')
+
