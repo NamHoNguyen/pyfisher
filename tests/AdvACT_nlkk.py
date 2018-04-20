@@ -32,13 +32,14 @@ Config.optionxform=str
 Config.read(iniFile)
 
 deprojList = ['0','1','2','3']
-nIter = np.inf
+nIter = 1
 
 if nIter == 1:
     iterName = '_iterOff'
 else:
     iterName = '_iterOn'
-    
+
+efficiencies = []
 print "Run with testNlkk lensing or lensTT"
 outDir = 'output/'+saveName+"_"
 i = 0
@@ -66,6 +67,8 @@ for deprojNow in deprojList:
     Lrange = np.arange(kellmin,kellmax)
     np.savetxt(outDir+'AdvACT_nlkk_deproj'+deprojNow+'_fsky_16000'+iterName+'.csv',np.vstack([Lrange,fnKK(Lrange)]).T)
     cprint("Delensing efficiency: "+ str(efficiency) + " %",color="green",bold=True)
-            
+    efficiencies.append(efficiency)
     i+=1
+np.savetxt(outDir+'AdvACT_dep'+iterName+'_delensingEff.csv',np.array(efficiencies))
+
 

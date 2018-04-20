@@ -37,17 +37,19 @@ for tau in taus:
                 plt.plot(fskys,mnus[:,i],c+l+'o',label='$\\sigma(\\tau)=$'+str(tau))
             else:
                 plt.plot(fskys,mnus[:,i],c+l+'o')
+    '''
     if m == 0:
         plt.plot(fskyACT,ACT[m,deproj],c+'x',label='$\\sigma(\\tau)=$'+str(tau)+', AdvACT',markersize=18)
     else:
         plt.plot(fskyACT,ACT[m,deproj],c+'x',markersize=18)
+    '''
     m += 1
-plt.xlabel('$f_{sky}$',fontsize=20)
+plt.xlabel('$f_{\\rm sky}$',fontsize=20)
 plt.ylabel('$\\sigma(\Sigma m_{\\nu})$',fontsize=20)
-plt.ylim([15,55])
-plt.legend()
+plt.ylim([15,50])
+plt.legend(loc='upper left')
 #plt.show()
-plt.savefig('output/Apr17_deproj1_mnu.png')    
+plt.savefig('output/Apr17_deproj1_mnu_noX.png')    
 plt.clf()
 
 # Lensing S/N plot
@@ -78,9 +80,9 @@ for i in range(len(noises)):
         #l = ls.next()
         l3, = plt.plot(fskys,sns3[:,i],c+l+'o')
 
-plt.xlabel('$f_{sky}$',fontsize=20)
+plt.xlabel('$f_{\\rm sky}$',fontsize=20)
 plt.ylabel('Lensing S/N',fontsize=20)
-#plt.ylim([15,45])
+plt.ylim([60,200])
 plt.legend()
 plt.savefig('output/Apr17_deproj0_deproj1_sn.png')    
 #plt.savefig('output/Mar9_deproj0_sn.png')    

@@ -62,9 +62,9 @@ for timeNow in timeList:
         # Get CMB noise and pad it with inf
         tellmin,tellmax = list_from_config(Config,expName,'tellrange')
         pellmin,pellmax = list_from_config(Config,expName,'pellrange')
-        ellT,nlTT,dummy = np.loadtxt('tests/TT/SOV3_T_default1-4-2_noisecurves_deproj0_'+noiseNow+'_mask_'+fskyNow+'_ell_TT_yy.txt',unpack=True)
+        ellT,nlTT,dummy = np.loadtxt('tests/TT/SOV3_T_default1-4-2_noisecurves_deproj3_'+noiseNow+'_mask_'+fskyNow+'_ell_TT_yy.txt',unpack=True)
         #ellE,dummy,nlEE = np.loadtxt('tests/EE/Nell_comb_LAT_'+noiseNow+'_fsky'+fskyNow+'.txt',unpack=True)
-        ellE,nlEE,nlBB = np.loadtxt('tests/EE-BB/SOV3_pol_default1-4-2_noisecurves_deproj0_'+noiseNow+'_mask_'+fskyNow+'_ell_EE_BB.txt',unpack=True)
+        ellE,nlEE,nlBB = np.loadtxt('tests/EE-BB/SOV3_pol_default1-4-2_noisecurves_deproj3_'+noiseNow+'_mask_'+fskyNow+'_ell_EE_BB.txt',unpack=True)
         fnTT = cosmo.noise_pad_infinity(interp1d(ellT,nlTT,bounds_error=False,fill_value=np.inf),tellmin,tellmax)
         fnEE = cosmo.noise_pad_infinity(interp1d(ellE,nlEE,bounds_error=False,fill_value=np.inf),pellmin,pellmax)
 
@@ -82,5 +82,5 @@ for timeNow in timeList:
         
         j+=1
     i+=1
-np.savetxt(outDir+iterName+'delensingEff.csv',efficiencies)
+np.savetxt(outDir+'deproj3_'+iterName+'delensingEff.csv',efficiencies)
     

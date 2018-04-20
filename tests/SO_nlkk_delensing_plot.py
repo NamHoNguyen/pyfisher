@@ -24,16 +24,16 @@ noiseList = ['Threshold','Baseline','Goal']
 #polOnly = np.loadtxt('output/Apr1_polOnly_time_sens_delensingEff.csv')
 mv = np.loadtxt('output/Apr17_mv_time_sens_iterOn_delensingEff.csv')
 polOnly = np.loadtxt('output/Apr17_polOnly_time_sens_iterOn_delensingEff.csv')
-'''
+
 i = 0
 for noiseNow in noiseList:
     c = color.next()
     plt.plot(timeList,mv[:,i],c+'-o',label=noiseNow+' mv')
     plt.plot(timeList,polOnly[:,i],c+'--o',label=noiseNow +' mv (pol only)')
     i+=1
-plt.xlabel('Percentage of time')
-plt.ylabel('Delensing efficiency (%)')
-plt.title('$f_{sky}$=0.1')
+plt.xlabel('Percentage of time',fontsize=20)
+plt.ylabel('Delensing efficiency (%)',fontsize=20)
+plt.title('$f_{\\rm sky}=0.1$',fontsize=25)
 plt.xlim([15,110])
 plt.legend()
 #plt.show()
@@ -51,9 +51,10 @@ for noiseNow in noiseList:
     i+=1
 plt.xlabel('Percentage of time',fontsize=20)
 plt.ylabel('$A_{\\rm lens}$',fontsize=25)
-plt.title('$f_{sky}=0.1$',fontsize=25)
+plt.title('$f_{\\rm sky}=0.1$',fontsize=25)
 plt.xlim([15,110])
 plt.legend()
 #plt.show()
 plt.savefig('tests/Apr17_Alens_time.png')
 
+'''
