@@ -25,6 +25,7 @@ noiseList = ['Threshold','Baseline','Goal']
 mv = np.loadtxt('output/Apr17_mv_time_sens_iterOn_delensingEff.csv')
 polOnly = np.loadtxt('output/Apr17_polOnly_time_sens_iterOn_delensingEff.csv')
 
+'''
 i = 0
 for noiseNow in noiseList:
     c = color.next()
@@ -57,4 +58,3 @@ plt.legend()
 #plt.show()
 plt.savefig('tests/Apr17_Alens_time.png')
 
-'''
