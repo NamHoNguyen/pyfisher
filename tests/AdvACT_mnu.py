@@ -37,6 +37,7 @@ Config.read(iniFile)
 
 tauList = ['0.01','0.005','0.002']
 deprojList = ['0','1','2','3']
+kkonly = True
 
 fskyNow = '16000'
 fsky = float(fskyNow)/40000.
@@ -66,8 +67,15 @@ for tauNow in tauList:
         fskyScale={'output/savedFisher_HighEllPlanck_fsky0.2.txt':(0.6-fsky)/0.2}
 
         # Load other Fisher matrices to add
+        CMBPrimary = 'output/May9_AdvACTFisher_LCDM+mnu_CMBPrimary_deproj'+deprojNow+'_fsky_'+fskyNow+'.csv'                                                                                        
+        #CMBPrimary = None
+
         try:
-            otherFisher = loadFishers(Config.get('fisher','otherFishers').split(','),fskyScale)
+            if CMBPrimary is not None:
+                otherFisher = loadFishers(Config.get('fisher','otherFishers').split(',')+[CMBPrimary],fskyScale)
+                print 'Add saved Fisher for CMB Primary'
+            else:
+                otherFisher = loadFishers(Config.get('fisher','otherFishers').split(','),fskyScale)
         except:
             otherFisher = 0.
 
@@ -91,8 +99,15 @@ for tauNow in tauList:
         ellrange = np.arange(min(tellmin,pellmin,kellmin),max(tellmax,pellmax,kellmax)).astype(int)
         # Calculate the Fisher matrix and add to other Fishers
         #Fisher = otherFisher+calcFisher(paramList,ellrange,fidCls,dCls,lambda x: fnTT(x)*TCMB**2.,lambda x: fnEE(x)*TCMB**2.,fnKK,fsky,verbose=True)
-        Fisher = otherFisher+calcFisher(paramList,ellrange,fidCls,dCls,lambda x: fnTT(x),lambda x: fnEE(x),fnKK,fsky,verbose=True)
-
+        
+        if kkonly:
+            # Only kk
+            Fisher = otherFisher+calcFisher(paramList,ellrange,fidCls,dCls,lambda x: np.inf,lambda x: np.inf,fnKK,fsky,verbose=True)
+            print '---Fisher: kk only---'
+        else:
+            # Total
+            Fisher = otherFisher+calcFisher(paramList,ellrange,fidCls,dCls,lambda x: fnTT(x),lambda x: fnEE(x),fnKK,fsky,verbose=True)
+            print '---Fisher: total---'
         
         # Get prior sigmas and add to Fisher
         priorList = Config.get("fisher","priorList").split(',')

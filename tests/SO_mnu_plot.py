@@ -28,12 +28,12 @@ m = 0
 for tau in taus:
     c = color.next()
     mnus = np.loadtxt(prefix+'_tau_'+str(tau)+'_mnu.csv')
-    for i in range(len(noises)):
+    for i in range(1,len(noises)):
         l = ls.next()
         if tau == taus[0]:
             plt.plot(fskys,mnus[:,i],c+l+'o',label='$\\sigma(\\tau)=$'+str(tau)+', '+noises[i])
         else:
-            if i == 0:
+            if i == 1:
                 plt.plot(fskys,mnus[:,i],c+l+'o',label='$\\sigma(\\tau)=$'+str(tau))
             else:
                 plt.plot(fskys,mnus[:,i],c+l+'o')
@@ -49,7 +49,7 @@ plt.ylabel('$\\sigma(\Sigma m_{\\nu})$',fontsize=20)
 plt.ylim([15,50])
 plt.legend(loc='upper left')
 #plt.show()
-plt.savefig('output/Apr17_deproj1_mnu_noX.png')    
+plt.savefig('output/May3_deproj1_mnu_noX.png')    
 plt.clf()
 
 # Lensing S/N plot
@@ -60,10 +60,10 @@ color = itertools.cycle(['C0', 'C1', 'C2']) #, 'C3', 'C4', 'C5', 'C6', 'C7', 'C8
 sns1 = np.loadtxt('output/Apr17_deproj0_tau_0.01_sn.csv')
 sns2 = np.loadtxt('output/Apr17_polOnly_deproj0_tau_0.01_sn.csv')
 sns3 = np.loadtxt('output/Apr17_deproj1_tau_0.01_sn.csv')
-for i in range(len(noises)):
+for i in range(1,len(noises)):
     #c = color.next()
     l = ls.next()
-    if i == 0:
+    if i == 1:
         c = color.next()
         l1, =plt.plot(fskys,sns1[:,i],c+l+'o',label=noises[i]+' - deproj0, mv')
         c = color.next()
@@ -75,7 +75,7 @@ for i in range(len(noises)):
         c = color.next()
         l1, =plt.plot(fskys,sns1[:,i],c+l+'o',label=noises[i])
         c = color.next()
-        l2, = plt.plot(fskys,sns2[:,i],c+l+'o',alpha=0.3)
+        l2, = plt.plot(fskys,sns2[:,i],c+l+'o') #,alpha=0.3)
         c = color.next()
         #l = ls.next()
         l3, = plt.plot(fskys,sns3[:,i],c+l+'o')
@@ -84,7 +84,7 @@ plt.xlabel('$f_{\\rm sky}$',fontsize=20)
 plt.ylabel('Lensing S/N',fontsize=20)
 plt.ylim([60,200])
 plt.legend()
-plt.savefig('output/Apr17_deproj0_deproj1_sn.png')    
+plt.savefig('output/May3_deproj0_deproj1_sn.png')    
 #plt.savefig('output/Mar9_deproj0_sn.png')    
 
 

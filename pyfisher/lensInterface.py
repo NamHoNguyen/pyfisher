@@ -22,7 +22,12 @@ def lensNoise(Config,expName,lensName,beamOverride=None,noiseTOverride=None,lkne
     pellmin,pellmax = list_from_config(Config,expName,'pellrange')
     if pellminOverride is not None: pellmin = pellminOverride
     if pellmaxOverride is not None: pellmax = pellmaxOverride
-    lmax = int(Config.getfloat(expName,'lmax'))
+    try:
+        bellmin,bellmax = list_from_config(Config,expName,'bellrange')
+    except:
+        print 'No Brange'
+        bellmin,bellmax = None,None
+    #lmax = int(Config.getfloat(expName,'lmax'))
 
     pols = Config.get(lensName,'polList').split(',')
     freq_to_use = Config.getfloat(lensName,'freq')
@@ -47,10 +52,14 @@ def lensNoise(Config,expName,lensName,beamOverride=None,noiseTOverride=None,lkne
     from orphics.lensing import NlGenerator,getMax
     from orphics import maps
 
-    deg = 20
+    #deg = 5
+    #px = 0.17
     dell = 10
     kellmin = 2
     kellmax = max(tellmax,pellmax)
+    print(kellmax)
+
+    #kellmax = 60000.
 
     shape,wcs = maps.rect_geometry(width_deg = deg, px_res_arcmin=px)
     eff_at = 60.
@@ -67,8 +76,9 @@ def lensNoise(Config,expName,lensName,beamOverride=None,noiseTOverride=None,lkne
         theory = theoryOverride
         cc = None
     bin_edges = np.arange(kellmin,kellmax,dell)
+    print('edges:',bin_edges,bigell)
     myNls = NlGenerator(shape,wcs,theory,bin_edges,gradCut=gradCut,bigell=bigell,unlensedEqualsLensed=lensedEqualsUnlensed)
-    myNls.updateNoise(beamX,noiseTX,np.sqrt(2.)*noiseTX,tellmin,tellmax,pellmin,pellmax,beamY=beamY,noiseTY=noiseTY,noisePY=np.sqrt(2.)*noiseTY,lkneesX=(lkneeT,lkneeP),lkneesY=(lkneeT,lkneeP),alphasX=(alphaT,alphaP),alphasY=(alphaT,alphaP),noiseFuncTX=noiseFuncT,noiseFuncTY=noiseFuncT,noiseFuncPX=noiseFuncP,noiseFuncPY=noiseFuncP)
+    myNls.updateNoise(beamX,noiseTX,np.sqrt(2.)*noiseTX,tellmin,tellmax,pellmin,pellmax,beamY=beamY,noiseTY=noiseTY,noisePY=np.sqrt(2.)*noiseTY,lkneesX=(lkneeT,lkneeP),lkneesY=(lkneeT,lkneeP),alphasX=(alphaT,alphaP),alphasY=(alphaT,alphaP),noiseFuncTX=noiseFuncT,noiseFuncTY=noiseFuncT,noiseFuncPX=noiseFuncP,noiseFuncPY=noiseFuncP,bellminY=bellmin,bellmaxY=bellmax)
 
     
     lsmv,Nlmv,ells,dclbb,efficiency = myNls.getNlIterative(pols,pellmin,pellmax,dell=dell,halo=True,plot=plot,max_iterations=nIter,eff_at=eff_at,kappa_min=kmin,kappa_max=kmax)

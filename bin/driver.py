@@ -31,7 +31,7 @@ def tryLoad(filepath,delimiter=None):
 
 class FisherForecast:
 
-    def __init__(self,iniFile,prefix='',dClsRoot={},source='CMB'):
+    def __init__(self,iniFile,prefix='',dClsRoot={},source='CMB',nlkkLocOverride={},fskyOverride={},noiseTOverride={}):
 
         '''
         Description:
@@ -60,8 +60,11 @@ class FisherForecast:
         self.source = source
         self.prefix = prefix
         self.dClsRoot = dClsRoot
+        self.nlkkLocOverride = nlkkLocOverride
+        self.fskyOverride = fskyOverride
+        self.noiseTOverride = noiseTOverride
         self.compact = self.Config.getboolean('general','compact')
-    
+        
         print iniFile
         self.paramList = self.Config.get('general','paramList').split(',')
         self.numParams = len(self.paramList)
@@ -109,10 +112,15 @@ class FisherForecast:
             
         # Get Priors
         self.sigPrior = {}
+        fconfig = ConfigParser.SafeConfigParser()
+        fconfig.optionxform = str
+        fconfig.read(iniFile)
         try:
-            for (key,val) in self.Config.items('prior'):
+            for (key,val) in fconfig.items('prior'):
+            #for (key,val) in self.Config.items('prior'):
                 if key == 'include': continue
                 self.sigPrior[key] = float(val)
+            print self.sigPrior
         except:
             print 'No prior.'
         '''
@@ -286,19 +294,16 @@ class FisherForecast:
                         Fz += dfk1*dfk2/sigmafk[k]**2.
                     Fisher[i,j] = Fz
                     Fisher[j,i] = Fz
-                try:    
-                    saveFile = Config.get(section,'saveFisher')
-                    np.savetxt(saveFile,Fisher)
-                    print "Saved to ", saveFile
-                except:
-                    pass
                 self.totFisher += Fisher
                 continue
                 
             lmin = Config.getint(section,'lmin')
             lmax = Config.getint(section,'lmax')
             fsky = Config.getfloat(section,'fsky')
-
+            if section in self.fskyOverride:
+                fsky = self.fskyOverride[section]
+                print "Change fsky for ",section," to ",self.fskyOverride[section]
+            
             try:
                 nFileT = Config.get(section,'noiseFileT')
                 ellT, nlTT = np.loadtxt(nFileT,unpack=True)
@@ -314,6 +319,15 @@ class FisherForecast:
                 beamFWHMs = [float(x) for x in Config.get(section,'beamFWHMArcmin').split(',')]
                 uKArcminTs = [float(x) for x in Config.get(section,'uKArcminT').split(',')]
                 uKArcminPs = [float(x) for x in Config.get(section,'uKArcminP').split(',')]
+                if section in self.noiseTOverride:
+                    uKArcminTs = [self.noiseTOverride[section]]
+                    uKArcminPs = [self.noiseTOverride[section]*np.sqrt(2.)]
+                    print 'noiseTOverride:',uKArcminTs,uKArcminPs
+                '''
+                if self.noiseTOverride is not None:
+                    uKArcminTs = [self.noiseTOverride]
+                    print 'noiseTOverride:',uKArcminTs,uKArcminPs
+                '''
                 try:
                     atmT = [float(x) for x in Config.get(section,'atmT').split(',')]
                     atmP = [float(x) for x in Config.get(section,'atmP').split(',')]
@@ -330,6 +344,9 @@ class FisherForecast:
             
             lensing = Config.getboolean(section,'includeLensingAuto')
             nlkkLoc = Config.get(section,'NlkkLocation')
+            if section in self.nlkkLocOverride:
+                nlkkLoc = self.nlkkLocOverride[section]
+                print "Change nlkkLoc for ",section," to ",self.nlkkLocOverride[section]
             try:
                 galaxy = Config.getboolean(section,'includeGalaxy')
             except:
@@ -353,7 +370,7 @@ class FisherForecast:
                     #dCls[paramName] = np.loadtxt(self.dClsRoot[paramName]+"_dCls_"+paramName+".csv",delimiter=",")
                     print "Change derivRoot of ",paramName," from ",derivRoot," to ",self.dClsRoot[paramName]
 
-            if False:#galaxy and not(lensing):
+            if galaxy and not(lensing):
                 print 'Add Galaxy info.'
                 galfidCls = tryLoad(self.galaxyRoot+'_fCls.csv',',')
                 #galfidCls = np.loadtxt(self.galaxyRoot+"_fCls.csv",delimiter=",")
@@ -437,12 +454,7 @@ class FisherForecast:
                 Fisher[i,j] = Fell
                 Fisher[j,i] = Fell
 
-            try:    
-                saveFile = Config.get(section,'saveFisher')
-                np.savetxt(saveFile,Fisher)
-                print "Saved to ", saveFile
-            except:
-                pass
+                            
             self.totFisher += Fisher
             #print self.totFisher
             
@@ -461,8 +473,7 @@ class FisherForecast:
         #print "fisher before adding prior",self.totFisher
         self.totFisher += FisherPriors
         #print "fisher after adding prior",self.totFisher
-        #np.savetxt('data/Feb19_DESI_BAO_wcdm.csv',self.totFisher)
-
+        
         # Final Fisher
         if verbose:    
             print "------- Final Fisher -------\n",self.totFisher
@@ -476,7 +487,7 @@ class FisherForecast:
         i = self.paramList.index(param)
         return np.sqrt(np.linalg.inv(self.totFisher)[i,i])
         
-    def confEllipse(self,param1,param2,confLevel=1,savefig=True,savedata=False,verbose=False):
+    def confEllipse(self,param1,param2,confLevel=1,savefig=True,savedata=False,verbose=False,fileName='test'):
         script = '[confEllipse]'
         alpha = {1:1.52, 2:2.48, 3:3.41}
         i = self.paramList.index(param1)
@@ -515,7 +526,8 @@ class FisherForecast:
         if verbose:
             print('Making Confidence Ellipse for '+param1+' and '+param2+' at Confidence Level of '+str(confLevel)+' sigma')
             print(script)
-        fileName = 'output/'+self.derivRoot+'_'+self.source+'_confEllipse_'+param1+'_'+param2+'_'+str(confLevel)+'sigma'
+        #fileName = 'output/'+self.derivRoot+'_'+self.source+'_confEllipse_'+param1+'_'+param2+'_'+str(confLevel)+'sigma'
+        fileName = 'output/'+fileName+'_'+self.source+'_confEllipse_'+param1+'_'+param2+'_'+str(confLevel)+'sigma'
 
         if savedata:
             with open(fileName+'.csv','w') as tempFile:
@@ -548,14 +560,15 @@ def main(argv):
     except:    
         #iniFile = "input/fisher_s4_temp.ini"
         iniFile = os.environ['FISHER_DIR']+'/input/fisherDebug.ini'
-        
+    print iniFile
     prefix = ''
     #dClsRoot ={'w':'June14_testStepSize_vhhAcc_unlensed_scalar_w_0.04074'}
     dClsRoot ={}
-    F = FisherForecast(iniFile,prefix=prefix,dClsRoot=dClsRoot)
+    nlkkLoc = {} #{'S4':'testfile.csv'}
+    F = FisherForecast(iniFile,prefix=prefix,dClsRoot=dClsRoot,nlkkLocOverride=nlkkLoc)
     print "Calculating Fisher matrix..."
     FisherMat = F.calcFisher(verbose = True)
-    np.savetxt('data/Feb26_FisherMat_Planck_notau_lens_fsky0.6_lcdm.csv',FisherMat)
+    #np.savetxt(os.environ['FISHER_DIR']+'Feb1_FisherMat_Planck_tau0.06_lens_fsky0.6.csv',FisherMat,delimiter=',')
     #print "1-sigma error on mnu = " , '{:3.0f}'.format(1.e3*F.margSigma("mnu")) , " meV."
     '''
     for param1 in F.paramList:
@@ -564,7 +577,9 @@ def main(argv):
     '''
     #F.confEllipse('mnu','tau',confLevel=1,savefig=False,savedata=True,verbose=True)
     #F.confEllipse('omch2','w',confLevel=1,savefig=False,savedata=False,verbose=True)
-    #F.confEllipse('mnu','nnu',confLevel=1,savefig=False,savedata=True,verbose=True)
-
+    #F.confEllipse('mnu','nnu',confLevel=1,savefig=False,savedata=True,verbose=True,fileName='Mar31_CSST_0.025_0.5')
+    #F.confEllipse('mnu','nnu',confLevel=1,savefig=False,savedata=True,verbose=True,fileName='Mar31_S4_0.4_1.0')
+    #F.confEllipse('mnu','nnu',confLevel=1,savefig=False,savedata=True,verbose=True,fileName='May22_S4_0.4_1.0')
+    print F.margSigma('nnu')
 if (__name__ == "__main__"):
     main(sys.argv[1:])
