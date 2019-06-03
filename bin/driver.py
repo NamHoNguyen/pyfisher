@@ -361,7 +361,18 @@ class FisherForecast:
 
             dCls = {}
             for paramName in self.paramList:
-                dCls[paramName] = tryLoad(derivRoot+'_dCls_'+paramName+'.csv',',')
+                dfile = derivRoot+'_dCls_'+paramName+'.csv'
+                if False: #paramName=='w':
+                    dCls['w'] = np.zeros((5477, 6))
+                    #dfile = 'July25_highAcc_2pt_szar_step_0.3_unlensed_scalar_dCls_w.csv' # !!!!!
+                    # 0 1 3 TT EE TE
+                    ssize = "0.01"
+                    dCls['w'][:,0] = np.load("deriv_%sstep_tt.npy" %ssize)[:5477]
+                    dCls['w'][:,1] = np.load("deriv_%sstep_ee.npy" %ssize)[:5477]
+                    dCls['w'][:,3] = np.load("deriv_%sstep_te.npy" %ssize)[:5477]
+                else:    
+                    dCls[paramName] = tryLoad(dfile,',')
+                    #print(dCls[paramName].shape)
                 #Cls[paramName] = np.loadtxt(derivRoot+"_dCls_"+paramName+".csv",delimiter=",")
         
             if len(self.dClsRoot) != 0:
@@ -478,8 +489,11 @@ class FisherForecast:
         if verbose:    
             print "------- Final Fisher -------\n",self.totFisher
             #print np.linalg.dConfidenceet(self.totFisher)
-            for param in self.paramList:
-                print param, " ," ,self.margSigma(param)
+            try:
+                for param in self.paramList:
+                    print param, " ," ,self.margSigma(param)
+            except:
+                pass
 
         return self.totFisher
 
@@ -568,7 +582,11 @@ def main(argv):
     F = FisherForecast(iniFile,prefix=prefix,dClsRoot=dClsRoot,nlkkLocOverride=nlkkLoc)
     print "Calculating Fisher matrix..."
     FisherMat = F.calcFisher(verbose = True)
+<<<<<<< HEAD
     #np.savetxt(os.environ['FISHER_DIR']+'Feb1_FisherMat_Planck_tau0.06_lens_fsky0.6.csv',FisherMat,delimiter=',')
+=======
+    # np.savetxt('data/Feb26_FisherMat_Planck_notau_lens_fsky0.6_lcdm.csv',FisherMat)
+>>>>>>> 6d7ca348a524bdf810c79db4e361434d294f9b64
     #print "1-sigma error on mnu = " , '{:3.0f}'.format(1.e3*F.margSigma("mnu")) , " meV."
     '''
     for param1 in F.paramList:
@@ -577,9 +595,18 @@ def main(argv):
     '''
     #F.confEllipse('mnu','tau',confLevel=1,savefig=False,savedata=True,verbose=True)
     #F.confEllipse('omch2','w',confLevel=1,savefig=False,savedata=False,verbose=True)
+<<<<<<< HEAD
     #F.confEllipse('mnu','nnu',confLevel=1,savefig=False,savedata=True,verbose=True,fileName='Mar31_CSST_0.025_0.5')
     #F.confEllipse('mnu','nnu',confLevel=1,savefig=False,savedata=True,verbose=True,fileName='Mar31_S4_0.4_1.0')
     #F.confEllipse('mnu','nnu',confLevel=1,savefig=False,savedata=True,verbose=True,fileName='May22_S4_0.4_1.0')
     print F.margSigma('nnu')
+=======
+    #F.confEllipse('mnu','nnu',confLevel=1,savefig=False,savedata=True,verbose=True)
+    from orphics import stats
+    s4 = stats.FisherMatrix(FisherMat,"H0,ombh2,omch2,tau,As,ns,mnu,w0,wa".split(','),delete_params=['mnu','wa'])
+    print(s4.sigmas())
+
+
+>>>>>>> 6d7ca348a524bdf810c79db4e361434d294f9b64
 if (__name__ == "__main__"):
     main(sys.argv[1:])
