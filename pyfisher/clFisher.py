@@ -3,7 +3,7 @@ import itertools
 import numpy as np
 import sys
 from scipy.interpolate import interp1d
-import ConfigParser
+from configparser import ConfigParser
 import traceback
 from matplotlib.patches import Ellipse
 import matplotlib.pyplot as plt
